@@ -1,0 +1,46 @@
+name: Job Scraper Cron
+
+on:
+  schedule:
+    - cron: '0 */5 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          # Necessary to allow pushing back to the repo
+          fetch-depth: 0 
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: pip install requests beautifulsoup4
+
+      - name: Run Scraper
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        run: python scraper.py
+
+      - name: Commit & Push History
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          
+          # Force pull to avoid conflict if multiple runs happen close together
+          git pull origin main || echo "No remote changes to pull"
+
+          if [ -f processed_jobs.txt ]; then
+            git add processed_jobs.txt
+            # Only commit if the file actually changed
+            git diff --quiet && git diff --staged --quiet || (git commit -m "Update job history [skip ci]" && git push)
+          fi
