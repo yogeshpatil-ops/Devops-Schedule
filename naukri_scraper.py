@@ -27,9 +27,12 @@ HEADERS = {
         "AppleWebKit/537.36 (KHTML, like Gecko) "
         "Chrome/120.0.0.0 Safari/537.36"
     ),
-    "Accept": "application/json",
+    "Accept": "*/*",
+    "Accept-Language": "en-US,en;q=0.9",
+    "Referer": "https://www.naukri.com/",
     "appid": "109",
-    "systemid": "109",
+    "systemid": "Naukri",
+    "gid": "LOCATION,INDUSTRY,EDUCATION,FAREA_ROLE",
 }
 
 # ✅ DevOps Keywords
