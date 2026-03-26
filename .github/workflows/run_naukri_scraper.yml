@@ -1,0 +1,45 @@
+name: Naukri Job Scraper Cron
+
+on:
+  schedule:
+    - cron: '30 */5 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Run Naukri Scraper
+        env:
+          NAUKRI_DISCORD_WEBHOOK: ${{ secrets.NAUKRI_DISCORD_WEBHOOK }}
+        run: python naukri_scraper.py
+
+      - name: Commit & Push History
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+
+          # Force pull to avoid conflict if multiple runs happen close together
+          git pull origin main || echo "No remote changes to pull"
+
+          if [ -f processed_naukri_jobs.txt ]; then
+            git add processed_naukri_jobs.txt
+            # Only commit if the file actually changed
+            git diff --quiet && git diff --staged --quiet || (git commit -m "Update Naukri job history [skip ci]" && git push)
+          fi
